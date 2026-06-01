@@ -1,0 +1,949 @@
+{
+    "title": "Campaign Command Center V17",
+    "description": "Real-time visibility from social impression to order outcome — viral launch edition",
+    "inputs": {
+        "input_bots_toggle": {
+            "eventHandlers": [
+                {
+                    "options": {
+                        "tokens": [
+                            {
+                                "token": "show_bots",
+                                "value": "$eval:toggleBots$"
+                            },
+                            {
+                                "token": "show_sales",
+                                "value": "false"
+                            }
+                        ]
+                    },
+                    "type": "drilldown.setToken"
+                }
+            ],
+            "options": {
+                "label": "$eval:botsLabel$"
+            },
+            "type": "input.button"
+        },
+        "input_campaign": {
+            "options": {
+                "defaultValue": "product_drop_v2",
+                "items": [
+                    {
+                        "label": "Product Drop v2",
+                        "value": "product_drop_v2"
+                    },
+                    {
+                        "label": "Summer Sale 2026",
+                        "value": "summer_sale_2026"
+                    },
+                    {
+                        "label": "Brand Collab Launch",
+                        "value": "collab_launch"
+                    }
+                ],
+                "token": "campaign"
+            },
+            "title": "Campaign",
+            "type": "input.dropdown"
+        },
+        "input_platform": {
+            "dataSources": {
+                "primary": "ds_platform_options"
+            },
+            "options": {
+                "defaultValue": "All",
+                "items": [
+                    {
+                        "label": "All Platforms",
+                        "value": "All"
+                    }
+                ],
+                "token": "platform"
+            },
+            "title": "Platform",
+            "type": "input.dropdown"
+        },
+        "input_sales_toggle": {
+            "eventHandlers": [
+                {
+                    "options": {
+                        "tokens": [
+                            {
+                                "token": "show_sales",
+                                "value": "$eval:toggleSales$"
+                            },
+                            {
+                                "token": "show_bots",
+                                "value": "false"
+                            }
+                        ]
+                    },
+                    "type": "drilldown.setToken"
+                }
+            ],
+            "options": {
+                "label": "$eval:salesLabel$"
+            },
+            "type": "input.button"
+        }
+    },
+    "defaults": {
+        "dataSources": {},
+        "tokens": {
+            "default": {
+                "show_bots": {
+                    "value": "false"
+                },
+                "show_sales": {
+                    "value": "false"
+                }
+            }
+        }
+    },
+    "visualizations": {
+        "viz_bot_map": {
+            "containerOptions": {
+                "visibility": {
+                    "showConditions": [
+                        "condition_bots_on"
+                    ]
+                }
+            },
+            "dataSources": {
+                "primary": "ds_bot_map"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "display.visualizations.custom.bot_attack_map.bot_attack_map.backgroundColor": "transparent"
+            },
+            "type": "bot_attack_map.bot_attack_map"
+        },
+        "viz_bots": {
+            "dataSources": {
+                "primary": "ds_bots"
+            },
+            "options": {
+                "areaFillOpacity": 0.4,
+                "backgroundColor": "transparent",
+                "legendDisplay": "bottom",
+                "nullValueDisplay": "zero",
+                "seriesColorsByField": {
+                    "bots_blocked": "#f44271",
+                    "legit_requests": "#4beba8"
+                },
+                "stackMode": "stacked"
+            },
+            "title": "Traffic — Legit vs. Bots Blocked",
+            "type": "splunk.area"
+        },
+        "viz_bubble": {
+            "dataSources": {
+                "primary": "ds_bubble"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "bubbleOpacity": 0.85,
+                "bubbleSizeMax": 110,
+                "bubbleSizeMin": 22,
+                "category": "> primary | seriesByName('platform')",
+                "legendDisplay": "bottom",
+                "size": "> primary | seriesByName('orders')",
+                "x": "> primary | seriesByName('impressions')",
+                "xAxisTitleText": "Impressions (Reach)",
+                "y": "> primary | seriesByName('sentiment')",
+                "yAxisTitleText": "Orders (Conversions)"
+            },
+            "title": "Reach × Outcome Matrix — impressions vs. orders, sized by sentiment",
+            "type": "splunk.bubble"
+        },
+        "viz_clock": {
+            "dataSources": {
+                "primary": "ds_clock"
+            },
+            "options": {
+                "align": "right",
+                "backgroundColor": "transparent",
+                "majorColor": "#7b8cf7",
+                "majorFontSize": 24,
+                "majorValue": "> primary | seriesByName('clock') | lastPoint()",
+                "sparklineDisplay": "off",
+                "trendDisplay": "off"
+            },
+            "type": "splunk.singlevalue"
+        },
+        "viz_emoji_chart": {
+            "dataSources": {
+                "primary": "ds_emoji"
+            },
+            "options": {
+                "areaFillOpacity": 0.85,
+                "legendDisplay": "right",
+                "nullValueDisplay": "zero",
+                "seriesColorsByField": {
+                    "❤️": "#f44271",
+                    "👍": "#4beba8",
+                    "👎": "#a855f7",
+                    "🔥": "#f4a941",
+                    "😢": "#7b8cf7"
+                },
+                "stackMode": "stacked",
+                "xAxisTitleText": "",
+                "yAxisTitleText": "Reaction count"
+            },
+            "title": "Emoji Reaction Pulse — audience sentiment over time",
+            "type": "splunk.area"
+        },
+        "viz_events_table": {
+            "context": {
+                "drilldownRedirect": {
+                    "options": {
+                        "target": "_self",
+                        "url": "/app/search/campaign_infra_stress"
+                    },
+                    "type": "url"
+                }
+            },
+            "dataSources": {
+                "primary": "ds_events_table"
+            },
+            "options": {
+                "backgroundColor": "> themes.defaultBackgroundColor",
+                "count": 1,
+                "drilldown": "row",
+                "fontSize": "large",
+                "rowNumbers": false,
+                "tableFormat": {
+                    "rowBackgroundColors": "> table | seriesByIndex(0) | pick(tableAltRowBackgroundColorsByTheme)"
+                }
+            },
+            "title": "Campaign Events — click any event to investigate",
+            "type": "splunk.table"
+        },
+        "viz_geo_overlay": {
+            "containerOptions": {
+                "visibility": {
+                    "showConditions": [
+                        "condition_sales_on"
+                    ]
+                }
+            },
+            "dataSources": {
+                "primary": "ds_geo"
+            },
+            "options": {
+                "layers": [
+                    {
+                        "choroplethStrokeColor": "#ffffff",
+                        "type": "choropleth"
+                    }
+                ]
+            },
+            "showLastUpdated": false,
+            "showProgressBar": false,
+            "title": "🗺️ Orders by Country",
+            "type": "splunk.map"
+        },
+        "viz_hex_bg": {
+            "containerOptions": {
+                "visibility": {
+                    "showConditions": [
+                        "condition_bots_on"
+                    ]
+                }
+            },
+            "options": {
+                "preserveAspectRatio": false,
+                "src": "/static/app/bot_attack_map/visualizations/bot_attack_map/world_hex_dark.png"
+            },
+            "type": "splunk.image"
+        },
+        "viz_kpi_abandon": {
+            "dataSources": {
+                "primary": "ds_kpi_abandon"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "majorColor": "#f44271",
+                "majorValue": "> primary | seriesByName('val') | lastPoint()",
+                "trendDisplay": "off"
+            },
+            "title": "Cart Abandonment",
+            "type": "splunk.singlevalue"
+        },
+        "viz_kpi_bots": {
+            "dataSources": {
+                "primary": "ds_kpi_bots"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "majorColor": "#a855f7",
+                "majorValue": "> primary | seriesByName('val') | lastPoint()",
+                "trendDisplay": "off"
+            },
+            "title": "Bots Blocked",
+            "type": "splunk.singlevalue"
+        },
+        "viz_kpi_impressions": {
+            "dataSources": {
+                "primary": "ds_kpi_impressions"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "majorColor": "#4beba8",
+                "majorValue": "> primary | seriesByName('val') | lastPoint()",
+                "trendDisplay": "off"
+            },
+            "title": "Total Impressions",
+            "type": "splunk.singlevalue"
+        },
+        "viz_kpi_orders": {
+            "dataSources": {
+                "primary": "ds_kpi_orders"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "majorColor": "#f4a941",
+                "majorValue": "> primary | seriesByName('val') | lastPoint()",
+                "trendDisplay": "off"
+            },
+            "title": "Orders",
+            "type": "splunk.singlevalue"
+        },
+        "viz_kpi_sentiment": {
+            "dataSources": {
+                "primary": "ds_kpi_sentiment"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "majorColor": "#4beba8",
+                "majorValue": "> primary | seriesByName('val') | lastPoint()",
+                "trendDisplay": "off"
+            },
+            "title": "Avg Sentiment",
+            "type": "splunk.singlevalue"
+        },
+        "viz_main_chart": {
+            "containerOptions": {
+                "visibility": {
+                    "showConditions": [
+                        "condition_both_off"
+                    ]
+                }
+            },
+            "dataSources": {
+                "annotations": "ds_annotations",
+                "primary": "ds_main_chart"
+            },
+            "options": {
+                "annotationColor": "> annotations | seriesByIndex(2)",
+                "annotationLabel": "> annotations | seriesByIndex(1)",
+                "annotationX": "> annotations | seriesByIndex(0)",
+                "areaFillOpacity": 0.3,
+                "legendDisplay": "bottom",
+                "lineWidth": 5,
+                "nullValueDisplay": "zero",
+                "overlayFields": [
+                    "orders"
+                ],
+                "seriesColorsByField": {
+                    "impressions": "#4beba8",
+                    "orders": "#f4a941"
+                },
+                "y2AxisFields": [
+                    "orders"
+                ],
+                "y2AxisTitleText": "Orders",
+                "y2Fields": [
+                    "orders"
+                ],
+                "yAxisTitleText": "Impressions"
+            },
+            "title": "$eval:campaignLabel$ · $platform$ — Impressions vs. Orders",
+            "type": "splunk.area"
+        },
+        "viz_main_chart_narrow": {
+            "containerOptions": {
+                "visibility": {
+                    "showConditions": [
+                        "condition_any_map_on"
+                    ]
+                }
+            },
+            "dataSources": {
+                "annotations": "ds_annotations",
+                "primary": "ds_main_chart"
+            },
+            "options": {
+                "annotationColor": "> annotations | seriesByIndex(2)",
+                "annotationLabel": "> annotations | seriesByIndex(1)",
+                "annotationX": "> annotations | seriesByIndex(0)",
+                "areaFillOpacity": 0.3,
+                "legendDisplay": "bottom",
+                "lineWidth": 5,
+                "nullValueDisplay": "zero",
+                "overlayFields": [
+                    "orders"
+                ],
+                "seriesColorsByField": {
+                    "impressions": "#4beba8",
+                    "orders": "#f4a941"
+                },
+                "y2AxisFields": [
+                    "orders"
+                ],
+                "y2AxisTitleText": "Orders",
+                "y2Fields": [
+                    "orders"
+                ],
+                "yAxisTitleText": "Impressions"
+            },
+            "title": "$eval:campaignLabel$ · $platform$ — Impressions vs. Orders",
+            "type": "splunk.area"
+        },
+        "viz_platform_leaderboard": {
+            "dataSources": {
+                "primary": "ds_platform_leaderboard"
+            },
+            "options": {
+                "columnColors": {
+                    "Health Score": {
+                        "ranges": [
+                            {
+                                "from": 0,
+                                "to": 40,
+                                "value": "#f44271"
+                            },
+                            {
+                                "from": 40,
+                                "to": 70,
+                                "value": "#f4a941"
+                            },
+                            {
+                                "from": 70,
+                                "to": 999,
+                                "value": "#4beba8"
+                            }
+                        ]
+                    }
+                },
+                "count": 10,
+                "drilldown": "none",
+                "font": "monospace",
+                "fontSize": "large",
+                "rowNumbers": false
+            },
+            "title": "📋 Platform Leaderboard — Health Score (powered by saved report · runs hourly)",
+            "type": "splunk.table"
+        },
+        "viz_radar": {
+            "dataSources": {
+                "primary": "ds_radar"
+            },
+            "options": {
+                "backgroundColor": "#000000",
+                "display.visualizations.custom.radar_viz.radar_viz.axes": "sentiment,ctr,conversion,roi_idx,reach",
+                "display.visualizations.custom.radar_viz.radar_viz.fill_opacity": "0.15",
+                "display.visualizations.custom.radar_viz.radar_viz.max_value": "100",
+                "display.visualizations.custom.radar_viz.radar_viz.series_field": "platform",
+                "display.visualizations.custom.radar_viz.radar_viz.show_labels": "true",
+                "display.visualizations.custom.radar_viz.radar_viz.show_legend": "true"
+            },
+            "title": "Platform Performance Radar — sentiment · CTR · conversion · ROI · reach",
+            "type": "radar_viz.radar_viz"
+        },
+        "viz_sankey": {
+            "dataSources": {
+                "primary": "ds_sankey"
+            },
+            "options": {
+                "linkOpacity": 0.55,
+                "linkValues": "> primary | seriesByName('value')",
+                "nodeColors": {
+                    "Clicks": "#7b8cf7",
+                    "Failed": "#f44271",
+                    "Fulfilled": "#4beba8",
+                    "In Queue": "#f9c74f",
+                    "Instagram": "#f4a941",
+                    "Orders": "#f4a941",
+                    "TikTok": "#4beba8",
+                    "X / Twitter": "#a855f7"
+                }
+            },
+            "title": "Campaign Flow — Platform to Outcome",
+            "type": "splunk.sankey"
+        },
+        "viz_sentiment": {
+            "dataSources": {
+                "primary": "ds_sentiment"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "legendDisplay": "bottom",
+                "seriesColorsByField": {
+                    "negative": "#f44271",
+                    "neutral": "#f4a941",
+                    "positive": "#4beba8"
+                },
+                "stackMode": "stacked100"
+            },
+            "title": "Platform Sentiment",
+            "type": "splunk.bar"
+        }
+    },
+    "dataSources": {
+        "ds_annotations": {
+            "options": {
+                "query": "| makeresults count=4 | streamstats count as row | eval _time=case(row=1,_time-72000,row=2,_time-57600,row=3,_time-36000,row=4,_time-21600) | eval status=case(row=1,\"Campaign launched\",row=2,\"Viral spike detected\",row=3,\"Infra stress begins\",row=4,\"Bot mitigation triggered\") | eval color=case(row=1,\"#4beba8\",row=2,\"#f4a941\",row=3,\"#f44271\",row=4,\"#a855f7\") | table _time status color"
+            },
+            "type": "ds.search"
+        },
+        "ds_bot_map": {
+            "options": {
+                "query": "| makeresults count=6 | streamstats count as row | eval country=case(row=1,\"China\",row=2,\"Russia\",row=3,\"N. Korea\",row=4,\"Bangladesh\",row=5,\"India\",row=6,\"Nigeria\") | eval lat=case(row=1,35.86,row=2,61.52,row=3,40.34,row=4,23.68,row=5,20.59,row=6,9.08) | eval lon=case(row=1,104.19,row=2,105.32,row=3,127.51,row=4,90.35,row=5,78.96,row=6,8.68) | eval attack_count=case(row=1,4823,row=2,2341,row=3,1876,row=4,987,row=5,654,row=6,432) | eval bot_ratio=case(row=1,0.94,row=2,0.89,row=3,0.97,row=4,0.78,row=5,0.82,row=6,0.75) | table country lat lon attack_count bot_ratio"
+            },
+            "type": "ds.search"
+        },
+        "ds_bots": {
+            "options": {
+                "query": "| makeresults count=24 | streamstats count as h | eval _time=_time-((25-h)*3600) | eval bots_blocked=case(h<=8,random()%50+10,h<=14,random()%200+100,h<=18,random()%2000+1500,h<=20,random()%800+400,1=1,random()%200+50) | eval legit_requests=case(h<=8,random()%2000+500,h<=14,random()%8000+5000,h<=18,random()%4000+2000,h<=20,random()%6000+3000,1=1,random()%5000+2000) | fields _time bots_blocked legit_requests",
+                "refreshInterval": 30
+            },
+            "type": "ds.search"
+        },
+        "ds_bubble": {
+            "options": {
+                "query": "| makeresults count=24 | streamstats count as h | eval platform=case(h<=8,\"TikTok\",h<=16,\"Instagram\",1=1,\"X / Twitter\") | eval hr=case(h<=8,h,h<=16,h-8,1=1,h-16) | eval impressions=case(platform=\"TikTok\" AND hr<=2,random()%3000+1500,platform=\"TikTok\" AND hr<=5,random()%9000+5000,platform=\"TikTok\",random()%42000+28000,platform=\"Instagram\" AND hr<=3,random()%4000+2000,platform=\"Instagram\" AND hr<=6,random()%15000+8000,platform=\"Instagram\",random()%38000+22000,hr<=2,random()%2000+800,hr<=5,random()%6000+3000,1=1,random()%28000+15000) | eval orders=case(platform=\"TikTok\" AND hr<=2,random()%600+250,platform=\"TikTok\" AND hr<=5,random()%2800+1200,platform=\"TikTok\",random()%10000+5000,platform=\"Instagram\" AND hr<=3,random()%800+300,platform=\"Instagram\" AND hr<=6,random()%3500+1500,platform=\"Instagram\",random()%9000+4500,hr<=2,random()%400+150,hr<=5,random()%1800+800,1=1,random()%6000+3000) | eval sentiment=case(platform=\"TikTok\",round(random()%10+78,0),platform=\"Instagram\",round(random()%8+80,0),1=1,round(random()%12+65,0)) | where \"$platform$\"=\"All\" OR platform=\"$platform$\" | table impressions orders sentiment platform"
+            },
+            "type": "ds.search"
+        },
+        "ds_clock": {
+            "options": {
+                "query": "| makeresults | eval clock=strftime(now(), \"%a %b %d  ·  %I:%M:%S %p\") | table clock",
+                "refresh": "1s"
+            },
+            "type": "ds.search"
+        },
+        "ds_emoji": {
+            "name": "emoji_line_chart_sentiment",
+            "options": {
+                "query": "| makeresults count=24 | streamstats count as h | eval _time=_time-((25-h)*3600) | eval heart=case(h<=4,random()%500+100,h<=8,random()%2000+500,h<=12,random()%15000+8000,h<=16,random()%5000+2000,h<=20,random()%4000+1500,1=1,random()%3000+1000) | eval fire=case(h<=4,random()%300+50,h<=8,random()%1500+300,h<=12,random()%12000+6000,h<=16,random()%4000+1500,h<=20,random()%3500+1200,1=1,random()%2500+800) | eval thumbs_up=case(h<=4,random()%400+80,h<=8,random()%1800+400,h<=12,random()%13000+7000,h<=16,random()%4500+1800,h<=20,random()%3800+1400,1=1,random()%2800+900) | eval thumbs_down=case(h<=4,random()%50+10,h<=8,random()%200+50,h<=12,random()%400+150,h<=16,random()%2500+4000,h<=20,random()%2000+800,1=1,random()%1200+400) | eval sad=case(h<=4,random()%30+5,h<=8,random()%150+30,h<=12,random()%300+100,h<=16,random()%1800+5000,h<=20,random()%1500+600,1=1,random()%900+300) | rename heart AS \"❤️\" fire AS \"🔥\" thumbs_up AS \"👍\" thumbs_down AS \"👎\" sad AS \"😢\" | fields _time \"❤️\" \"🔥\" \"👍\" \"👎\" \"😢\""
+            },
+            "type": "ds.search"
+        },
+        "ds_events_table": {
+            "options": {
+                "query": "| makeresults count=4 | streamstats count as row | eval _time=case(row=1,_time-72000,row=2,_time-57600,row=3,_time-36000,row=4,_time-21600) | eval label=strftime(_time,\"%b %d %H:%M\").\"—\".case(row=1,\"Campaign launched\",row=2,\"Viral spike detected\",row=3,\"Infra stress begins\",row=4,\"Bot mitigation triggered\") | stats list(label) AS lbl | eval \"🟢 Launch\"=mvindex(lbl,0) | eval \"🟡 Spike\"=mvindex(lbl,1) | eval \"🔴 Stress\"=mvindex(lbl,2) | eval \"🟣 Bots\"=mvindex(lbl,3) | table \"🟢 Launch\" \"🟡 Spike\" \"🔴 Stress\" \"🟣 Bots\""
+            },
+            "type": "ds.search"
+        },
+        "ds_geo": {
+            "name": "sales_map",
+            "options": {
+                "query": "| inputlookup geo_attr_countries\r\n| eval orders = case(\r\n    country=\"United States\",       8420,\r\n    country=\"United Kingdom\",      3215,\r\n    country=\"Canada\",              2180,\r\n    country=\"Japan\",               2105,\r\n    country=\"Australia\",           1870,\r\n    country=\"Germany\",             1654,\r\n    country=\"India\",               1320,\r\n    country=\"France\",              1432,\r\n    country=\"South Korea\",         1105,\r\n    country=\"Singapore\",            892,\r\n    country=\"Brazil\",               987,\r\n    country=\"Netherlands\",          543,\r\n    country=\"United Arab Emirates\", 678,\r\n    country=\"Mexico\",               743,\r\n    country=\"Spain\",                621,\r\n    true(), 0\r\n  )\r\n| where orders > 0\r\n| geom geo_countries featureIdField=country\r\n| fields country, orders, geom"
+            },
+            "type": "ds.search"
+        },
+        "ds_kpi_abandon": {
+            "name": "arct_aband",
+            "options": {
+                "extend": "ds_kpi_base",
+                "query": "| rename cart_abandon as val | fields val"
+            },
+            "type": "ds.chain"
+        },
+        "ds_kpi_base": {
+            "name": "NovaDrop KPI Base — platform filtered",
+            "options": {
+                "query": "| makeresults count=4 | streamstats count as uid | eval platform=case(uid=1,\"All\",uid=2,\"TikTok\",uid=3,\"Instagram\",uid=4,\"X / Twitter\") | eval impressions=case(uid=1,\"👁 2.4M\",uid=2,\"👁 1.2M\",uid=3,\"👁 856K\",uid=4,\"👁 344K\") | eval orders=case(uid=1,\"🛒 18.2K\",uid=2,\"🛒 8.1K\",uid=3,\"🛒 6.4K\",uid=4,\"🛒 3.7K\") | eval sentiment=case(uid=1,\"📊 84%\",uid=2,\"📊 87%\",uid=3,\"📊 82%\",uid=4,\"📊 71%\") | eval cart_abandon=case(uid=1,\"⚠️ 47%\",uid=2,\"⚠️ 41%\",uid=3,\"⚠️ 52%\",uid=4,\"⚠️ 55%\") | eval bots=case(uid=1,\"👾 3.1K\",uid=2,\"👾 1.8K\",uid=3,\"👾 900\",uid=4,\"👾 400\") | where platform=\"$platform$\" | stats values(*) as *",
+                "queryParameters": {
+                    "earliest": "-24h",
+                    "latest": "now"
+                }
+            },
+            "type": "ds.search"
+        },
+        "ds_kpi_bots": {
+            "name": "bot_blocked",
+            "options": {
+                "extend": "ds_kpi_base",
+                "query": "| rename bots as val | fields val"
+            },
+            "type": "ds.chain"
+        },
+        "ds_kpi_impressions": {
+            "options": {
+                "extend": "ds_kpi_base",
+                "query": "| rename impressions as val | fields val"
+            },
+            "type": "ds.chain"
+        },
+        "ds_kpi_orders": {
+            "options": {
+                "extend": "ds_kpi_base",
+                "query": "| rename orders as val | fields val"
+            },
+            "type": "ds.chain"
+        },
+        "ds_kpi_sentiment": {
+            "name": "sentiment",
+            "options": {
+                "extend": "ds_kpi_base",
+                "query": "| rename sentiment as val | fields val"
+            },
+            "type": "ds.chain"
+        },
+        "ds_main_chart": {
+            "options": {
+                "query": "| makeresults count=24 | streamstats count as h | eval _time=_time-((25-h)*3600) | eval multiplier=case(\"$platform$\"=\"TikTok\",1.4,\"$platform$\"=\"Instagram\",0.9,\"$platform$\"=\"X / Twitter\",0.5,1=1,1.0) | eval impressions=round(case(h<=4,random()%3000+1000,h<=8,random()%8000+4000,h<=12,random()%40000+25000,h<=16,random()%60000+45000,h<=20,random()%30000+15000,1=1,random()%15000+6000)*multiplier,0) | eval orders=round(case(h<=4,random()%800+200,h<=8,random()%3000+1500,h<=11,random()%5000+5000,h<=13,random()%5000+13000,h<=15,random()%4000+9000,h<=17,random()%3000+3000,h<=19,random()%2000+4000,h<=21,random()%3000+6000,1=1,random()%3000+7000)*multiplier,0) | fields _time impressions orders"
+            },
+            "type": "ds.search"
+        },
+        "ds_platform_leaderboard": {
+            "name": "NovaDrop Platform Leaderboard — scheduled hourly report",
+            "options": {
+                "earliest": "-1h",
+                "latest": "now",
+                "ref": "novadrop_platform_leaderboard"
+            },
+            "type": "ds.savedSearch"
+        },
+        "ds_platform_options": {
+            "name": "Platform Cascade — driven by $campaign$",
+            "options": {
+                "query": "| makeresults count=3 | streamstats count as uid | eval campaign=case(uid=1,\"product_drop_v2\",uid=2,\"summer_sale_2026\",uid=3,\"collab_launch\") | eval platforms=case(uid=1,\"TikTok|Instagram|X / Twitter\",uid=2,\"TikTok|Instagram\",uid=3,\"Instagram|TikTok|X / Twitter\") | where campaign=\"$campaign$\" | eval platform=split(platforms,\"|\") | mvexpand platform | stats count by platform",
+                "queryParameters": {
+                    "earliest": "-24h",
+                    "latest": "now"
+                }
+            },
+            "type": "ds.search"
+        },
+        "ds_radar": {
+            "name": "spider",
+            "options": {
+                "query": "| makeresults count=3 | streamstats count as p | eval platform=case(p=1,\"TikTok\",p=2,\"Instagram\",p=3,\"X / Twitter\") | eval sentiment=case(p=1,82,p=2,74,p=3,99) | eval ctr=case(p=1,42,p=2,81,p=3,28) | eval conversion=case(p=1,91,p=2,48,p=3,22) | eval roi_idx=case(p=1,38,p=2,56,p=3,88) | eval reach=case(p=1,98,p=2,26,p=3,48) | where \"$platform$\"=\"All\" OR platform=\"$platform$\" | table platform sentiment ctr conversion roi_idx reach"
+            },
+            "type": "ds.search"
+        },
+        "ds_sankey": {
+            "name": "sankey",
+            "options": {
+                "query": "| makeresults count=9 | streamstats count as row | eval source=case(row=1,\"TikTok\",row=2,\"Instagram\",row=3,\"X / Twitter\",row=4,\"TikTok\",row=5,\"Instagram\",row=6,\"X / Twitter\",row=7,\"Orders\",row=8,\"Orders\",row=9,\"Orders\") | eval target=case(row=1,\"Clicks\",row=2,\"Clicks\",row=3,\"Clicks\",row=4,\"Orders\",row=5,\"Orders\",row=6,\"Orders\",row=7,\"Fulfilled\",row=8,\"Failed\",row=9,\"In Queue\") | eval value=case(row=1,9200,row=2,5800,row=3,3200,row=4,6800,row=5,4100,row=6,2100,row=7,7400,row=8,3900,row=9,1600) | table source target value"
+            },
+            "type": "ds.search"
+        },
+        "ds_sentiment": {
+            "options": {
+                "query": "| makeresults count=3 | streamstats count as row | eval platform=case(row=1,\"TikTok\",row=2,\"Instagram\",row=3,\"X / Twitter\") | eval positive=case(row=1,87,row=2,82,row=3,71) | eval neutral=case(row=1,8,row=2,12,row=3,18) | eval negative=case(row=1,5,row=2,6,row=3,11) | where \"$platform$\"=\"All\" OR platform=\"$platform$\" | table platform positive neutral negative"
+            },
+            "type": "ds.search"
+        }
+    },
+    "layout": {
+        "layoutDefinitions": {
+            "layout_main": {
+                "options": {
+                    "height": 1240,
+                    "width": 1440
+                },
+                "structure": [
+                    {
+                        "item": "input_campaign",
+                        "position": {
+                            "h": 78,
+                            "w": 200,
+                            "x": 20,
+                            "y": 10
+                        },
+                        "type": "input"
+                    },
+                    {
+                        "item": "input_platform",
+                        "position": {
+                            "h": 78,
+                            "w": 204,
+                            "x": 250,
+                            "y": 10
+                        },
+                        "type": "input"
+                    },
+                    {
+                        "item": "input_bots_toggle",
+                        "position": {
+                            "h": 78,
+                            "w": 160,
+                            "x": 470,
+                            "y": 10
+                        },
+                        "type": "input"
+                    },
+                    {
+                        "item": "input_sales_toggle",
+                        "position": {
+                            "h": 78,
+                            "w": 160,
+                            "x": 610,
+                            "y": 10
+                        },
+                        "type": "input"
+                    },
+                    {
+                        "item": "viz_kpi_impressions",
+                        "position": {
+                            "h": 90,
+                            "w": 215,
+                            "x": 20,
+                            "y": 90
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_kpi_sentiment",
+                        "position": {
+                            "h": 90,
+                            "w": 215,
+                            "x": 242,
+                            "y": 90
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_kpi_orders",
+                        "position": {
+                            "h": 90,
+                            "w": 215,
+                            "x": 464,
+                            "y": 90
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_kpi_abandon",
+                        "position": {
+                            "h": 90,
+                            "w": 215,
+                            "x": 686,
+                            "y": 90
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_kpi_bots",
+                        "position": {
+                            "h": 90,
+                            "w": 215,
+                            "x": 908,
+                            "y": 90
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_clock",
+                        "position": {
+                            "h": 100,
+                            "w": 350,
+                            "x": 1090,
+                            "y": 100
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_main_chart",
+                        "position": {
+                            "h": 290,
+                            "w": 1400,
+                            "x": 30,
+                            "y": 200
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_main_chart_narrow",
+                        "position": {
+                            "h": 290,
+                            "w": 940,
+                            "x": 30,
+                            "y": 200
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_hex_bg",
+                        "position": {
+                            "h": 290,
+                            "w": 460,
+                            "x": 970,
+                            "y": 200
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_bot_map",
+                        "position": {
+                            "h": 290,
+                            "w": 460,
+                            "x": 970,
+                            "y": 200
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_geo_overlay",
+                        "position": {
+                            "h": 290,
+                            "w": 460,
+                            "x": 970,
+                            "y": 200
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_events_table",
+                        "position": {
+                            "h": 170,
+                            "w": 1400,
+                            "x": 30,
+                            "y": 510
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_bots",
+                        "position": {
+                            "h": 280,
+                            "w": 640,
+                            "x": 30,
+                            "y": 690
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_sankey",
+                        "position": {
+                            "h": 280,
+                            "w": 740,
+                            "x": 690,
+                            "y": 690
+                        },
+                        "type": "block"
+                    }
+                ],
+                "type": "absolute"
+            },
+            "layout_sentiment": {
+                "options": {
+                    "height": 980,
+                    "width": 1440
+                },
+                "structure": [
+                    {
+                        "item": "viz_emoji_chart",
+                        "position": {
+                            "h": 270,
+                            "w": 1020,
+                            "x": 20,
+                            "y": 20
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_sentiment",
+                        "position": {
+                            "h": 270,
+                            "w": 370,
+                            "x": 1050,
+                            "y": 20
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_bubble",
+                        "position": {
+                            "h": 320,
+                            "w": 880,
+                            "x": 20,
+                            "y": 310
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_radar",
+                        "position": {
+                            "h": 320,
+                            "w": 480,
+                            "x": 920,
+                            "y": 310
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_platform_leaderboard",
+                        "position": {
+                            "h": 300,
+                            "w": 1400,
+                            "x": 20,
+                            "y": 650
+                        },
+                        "type": "block"
+                    }
+                ],
+                "type": "absolute"
+            }
+        },
+        "tabs": {
+            "items": [
+                {
+                    "label": "Command Center",
+                    "layoutId": "layout_main"
+                },
+                {
+                    "label": "Sentiment Pulse",
+                    "layoutId": "layout_sentiment"
+                }
+            ]
+        }
+    },
+    "expressions": {
+        "conditions": {
+            "condition_any_map_on": {
+                "name": "Any map visible",
+                "value": "$show_bots$ = \"true\" or $show_sales$ = \"true\""
+            },
+            "condition_both_off": {
+                "name": "No map - chart full width",
+                "value": "$show_bots$ = \"false\" and $show_sales$ = \"false\""
+            },
+            "condition_bots_on": {
+                "name": "Bot map visible",
+                "value": "$show_bots$ = \"true\""
+            },
+            "condition_sales_on": {
+                "name": "Sales map visible",
+                "value": "$show_sales$ = \"true\""
+            }
+        },
+        "eval": {
+            "expr_bots_label": {
+                "name": "botsLabel",
+                "value": "$show_bots$ = 'true' ? '🛡️ Hide Bot Map' : '🛡️ Bot Map'"
+            },
+            "expr_campaign_label": {
+                "name": "campaignLabel",
+                "value": "$campaign$ = 'product_drop_v2' ? 'Product Drop v2' : ($campaign$ = 'summer_sale_2026' ? 'Summer Sale 2026' : 'Brand Collab Launch')"
+            },
+            "expr_sales_label": {
+                "name": "salesLabel",
+                "value": "$show_sales$ = 'true' ? '🗺️ Hide Sales Map' : '🗺️ Sales Map'"
+            },
+            "expr_toggle_bots": {
+                "name": "toggleBots",
+                "value": "$show_bots$ = 'true' ? 'false' : 'true'"
+            },
+            "expr_toggle_sales": {
+                "name": "toggleSales",
+                "value": "$show_sales$ = 'true' ? 'false' : 'true'"
+            }
+        }
+    }
+}

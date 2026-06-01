@@ -1,0 +1,439 @@
+{
+    "title": "Infrastructure Stress & Recovery",
+    "description": "Deep dive into the infra event — triggered from Campaign Command Center",
+    "defaults": {
+        "dataSources": {}
+    },
+    "visualizations": {
+        "viz_failure": {
+            "dataSources": {
+                "primary": "ds_failure_treemap"
+            },
+            "options": {
+                "display.visualizations.custom.treemap_viz.treemap_viz.color_scheme": "red",
+                "display.visualizations.custom.treemap_viz.treemap_viz.count_field": "count",
+                "display.visualizations.custom.treemap_viz.treemap_viz.label_field": "label",
+                "display.visualizations.custom.treemap_viz.treemap_viz.show_labels": "true"
+            },
+            "title": "Order Failure Breakdown — by root cause",
+            "type": "treemap_viz.treemap_viz"
+        },
+        "viz_kpi_bots_peak": {
+            "dataSources": {
+                "primary": "ds_kpi_bots_peak"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "majorColor": "#a855f7",
+                "majorValue": "> primary | seriesByName('val') | lastPoint()",
+                "trendDisplay": "off"
+            },
+            "title": "Bot Traffic Peak",
+            "type": "splunk.singlevalue"
+        },
+        "viz_kpi_error": {
+            "dataSources": {
+                "primary": "ds_kpi_error"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "majorColor": "#f44271",
+                "majorValue": "> primary | seriesByName('val') | lastPoint()",
+                "trendDisplay": "off"
+            },
+            "title": "Peak Error Rate",
+            "type": "splunk.singlevalue"
+        },
+        "viz_kpi_failed": {
+            "dataSources": {
+                "primary": "ds_kpi_failed"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "majorColor": "#f4a941",
+                "majorValue": "> primary | seriesByName('val') | lastPoint()",
+                "trendDisplay": "off"
+            },
+            "title": "Orders Failed",
+            "type": "splunk.singlevalue"
+        },
+        "viz_kpi_latency": {
+            "dataSources": {
+                "primary": "ds_kpi_latency"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "majorColor": "#f44271",
+                "majorValue": "> primary | seriesByName('val') | lastPoint()",
+                "trendDisplay": "off"
+            },
+            "title": "Peak Response Time",
+            "type": "splunk.singlevalue"
+        },
+        "viz_kpi_lost": {
+            "dataSources": {
+                "primary": "ds_kpi_lost"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "majorColor": "#f44271",
+                "majorValue": "> primary | seriesByName('val') | lastPoint()",
+                "trendDisplay": "off"
+            },
+            "title": "Est. Lost Orders",
+            "type": "splunk.singlevalue"
+        },
+        "viz_kpi_recovery": {
+            "dataSources": {
+                "primary": "ds_kpi_recovery"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "majorColor": "#4beba8",
+                "majorValue": "> primary | seriesByName('val') | lastPoint()",
+                "trendDisplay": "off"
+            },
+            "title": "Time to Recovery",
+            "type": "splunk.singlevalue"
+        },
+        "viz_kpi_revenue": {
+            "dataSources": {
+                "primary": "ds_kpi_revenue"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "majorColor": "#f44271",
+                "majorValue": "> primary | seriesByName('val') | lastPoint()",
+                "trendDisplay": "off"
+            },
+            "title": "Est. Revenue Impact",
+            "type": "splunk.singlevalue"
+        },
+        "viz_latency": {
+            "dataSources": {
+                "annotations": "ds_annotations",
+                "primary": "ds_latency"
+            },
+            "options": {
+                "annotationColor": "> annotations | seriesByIndex(2)",
+                "annotationLabel": "> annotations | seriesByIndex(1)",
+                "annotationX": "> annotations | seriesByIndex(0)",
+                "areaFillOpacity": 0.3,
+                "legendDisplay": "bottom",
+                "lineWidth": 3,
+                "nullValueDisplay": "zero",
+                "overlayFields": [
+                    "error_pct"
+                ],
+                "seriesColorsByField": {
+                    "error_pct": "#f44271",
+                    "response_ms": "#f4a941"
+                },
+                "y2AxisFields": [
+                    "error_pct"
+                ],
+                "y2AxisTitleText": "Error Rate (%)",
+                "y2Fields": [
+                    "error_pct"
+                ],
+                "yAxisTitleText": "Response Time (ms)"
+            },
+            "title": "Response Time & Error Rate — 24-hour stress window",
+            "type": "splunk.area"
+        },
+        "viz_queue": {
+            "dataSources": {
+                "primary": "ds_queue"
+            },
+            "options": {
+                "areaFillOpacity": 0.4,
+                "backgroundColor": "transparent",
+                "legendDisplay": "bottom",
+                "nullValueDisplay": "zero",
+                "seriesColorsByField": {
+                    "processed": "#4beba8",
+                    "queued": "#f44271"
+                },
+                "yAxisTitleText": "Order Count"
+            },
+            "title": "Order Queue — queued vs. processed per hour",
+            "type": "splunk.area"
+        },
+        "viz_recovery_events": {
+            "dataSources": {
+                "primary": "ds_gantt"
+            },
+            "options": {
+                "display.visualizations.custom.gantt_viz.gantt_viz.duration_field": "duration",
+                "display.visualizations.custom.gantt_viz.gantt_viz.outage_end": "29",
+                "display.visualizations.custom.gantt_viz.gantt_viz.outage_label": "⚠ Outage Window (26 min)",
+                "display.visualizations.custom.gantt_viz.gantt_viz.outage_start": "3",
+                "display.visualizations.custom.gantt_viz.gantt_viz.show_legend": "true",
+                "display.visualizations.custom.gantt_viz.gantt_viz.show_outage": "true",
+                "display.visualizations.custom.gantt_viz.gantt_viz.start_field": "start",
+                "display.visualizations.custom.gantt_viz.gantt_viz.task_field": "task",
+                "display.visualizations.custom.gantt_viz.gantt_viz.team_field": "team",
+                "display.visualizations.custom.gantt_viz.gantt_viz.time_unit": "min"
+            },
+            "title": "Recovery Timeline — T+0 to all-clear (minutes)",
+            "type": "gantt_viz.gantt_viz"
+        },
+        "viz_service_health": {
+            "dataSources": {
+                "primary": "ds_service_health"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "legendDisplay": "bottom",
+                "orientation": "horizontal",
+                "seriesColorsByField": {
+                    "downtime_pct": "#f44271",
+                    "uptime_pct": "#4beba8"
+                },
+                "stackMode": "stacked"
+            },
+            "title": "Service Availability — % uptime during event window",
+            "type": "splunk.bar"
+        }
+    },
+    "dataSources": {
+        "ds_annotations": {
+            "options": {
+                "query": "| makeresults count=4 | streamstats count as row | eval _time=case(row=1,_time-72000,row=2,_time-57600,row=3,_time-36000,row=4,_time-21600) | eval status=case(row=1,\"Campaign launched\",row=2,\"Viral spike detected\",row=3,\"Infra stress begins\",row=4,\"Bot mitigation triggered\") | eval color=case(row=1,\"#4beba8\",row=2,\"#f4a941\",row=3,\"#f44271\",row=4,\"#a855f7\") | table _time status color"
+            },
+            "type": "ds.search"
+        },
+        "ds_failure": {
+            "options": {
+                "query": "| makeresults count=5 | streamstats count as row | eval reason=case(row=1,\"Gateway Timeout\",row=2,\"503 Unavailable\",row=3,\"Payment Declined\",row=4,\"Bot Rejected\",row=5,\"Inventory Lock\") | eval count=case(row=1,1820,row=2,1240,row=3,420,row=4,310,row=5,110) | table reason count"
+            },
+            "type": "ds.search"
+        },
+        "ds_failure_treemap": {
+            "options": {
+                "query": "| makeresults count=7 | streamstats count as row | eval label=case(row=1,\"Gateway Timeout\",row=2,\"503 Unavailable\",row=3,\"Payment Declined\",row=4,\"Bot Rejected\",row=5,\"Inventory Lock\",row=6,\"Auth Failure\",row=7,\"DB Deadlock\") | eval count=case(row=1,1820,row=2,1240,row=3,420,row=4,310,row=5,180,row=6,140,row=7,90) | sort -count | streamstats count as rank | eval label=if(rank>4,\"other\",label) | stats sum(count) as count by label | sort -count | table label count"
+            },
+            "type": "ds.search"
+        },
+        "ds_gantt": {
+            "options": {
+                "query": "| makeresults count=7 | streamstats count as row | eval task=case(row=1,\"Alert triggered\",row=2,\"Incident declared\",row=3,\"DB failover started\",row=4,\"Traffic rerouted\",row=5,\"DB replica promoted\",row=6,\"Payment svc restored\",row=7,\"All-clear issued\") | eval team=case(row=1,\"Monitoring\",row=2,\"SRE\",row=3,\"DBA\",row=4,\"Network\",row=5,\"DBA\",row=6,\"Platform\",row=7,\"SRE\") | eval start=case(row=1,0,row=2,2,row=3,3,row=4,5,row=5,14,row=6,18,row=7,26) | eval duration=case(row=1,4,row=2,3,row=3,12,row=4,8,row=5,7,row=6,11,row=7,3) | fields task, team, start, duration"
+            },
+            "type": "ds.search"
+        },
+        "ds_kpi_bots_peak": {
+            "name": "bot_traffic",
+            "options": {
+                "query": "| makeresults | eval val=\"👾 68%\" | table val"
+            },
+            "type": "ds.search"
+        },
+        "ds_kpi_error": {
+            "name": "error_rate",
+            "options": {
+                "query": "| makeresults | eval val=\"🔴 23%\" | table val"
+            },
+            "type": "ds.search"
+        },
+        "ds_kpi_failed": {
+            "name": "orders_failed",
+            "options": {
+                "query": "| makeresults | eval val=\"📦 3.9K\" | table val"
+            },
+            "type": "ds.search"
+        },
+        "ds_kpi_latency": {
+            "name": "response_time",
+            "options": {
+                "query": "| makeresults | eval val=\"⚡ 8.4s\" | table val"
+            },
+            "type": "ds.search"
+        },
+        "ds_kpi_lost": {
+            "name": "lost_orders",
+            "options": {
+                "query": "| makeresults | eval val=\"~6.0K 💸\" | table val"
+            },
+            "type": "ds.search"
+        },
+        "ds_kpi_recovery": {
+            "name": "time_to_recovery",
+            "options": {
+                "query": "| makeresults | eval val=\"✅ 47 min\" | table val"
+            },
+            "type": "ds.search"
+        },
+        "ds_kpi_revenue": {
+            "name": "revenue_loss",
+            "options": {
+                "query": "| makeresults | eval val=\"~$180K 💰\" | table val"
+            },
+            "type": "ds.search"
+        },
+        "ds_latency": {
+            "options": {
+                "query": "| makeresults count=24 | streamstats count as h | eval _time=_time-((25-h)*3600) | eval response_ms=case(h<=4,random()%100+120,h<=8,random()%200+180,h<=12,random()%500+400,h<=14,random()%3000+4000,h<=16,random()%2000+5500,h<=18,random()%1500+2000,h<=20,random()%500+700,1=1,random()%200+280) | eval error_pct=case(h<=4,random()%2+1,h<=8,random()%3+2,h<=12,random()%5+3,h<=14,random()%8+12,h<=16,random()%8+20,h<=18,random()%8+10,h<=20,random()%5+4,1=1,random()%2+1) | fields _time response_ms error_pct"
+            },
+            "type": "ds.search"
+        },
+        "ds_queue": {
+            "options": {
+                "query": "| makeresults count=24 | streamstats count as h | eval _time=_time-((25-h)*3600) | eval queued=case(h<=4,random()%50+10,h<=8,random()%200+50,h<=12,random()%500+200,h<=14,random()%3000+2000,h<=16,random()%4000+5000,h<=18,random()%2000+1000,h<=20,random()%500+200,1=1,random()%100+30) | eval processed=case(h<=4,random()%200+100,h<=8,random()%800+400,h<=12,random()%2000+1000,h<=14,random()%1000+500,h<=16,random()%400+150,h<=18,random()%2000+1500,h<=20,random()%2500+1800,1=1,random()%2000+1500) | fields _time queued processed"
+            },
+            "type": "ds.search"
+        },
+        "ds_recovery_events": {
+            "options": {
+                "query": "| makeresults count=4 | streamstats count as row | eval _time=case(row=1,_time-36000,row=2,_time-21600,row=3,_time-18000,row=4,_time-14400) | eval label=strftime(_time,\"%b %d %H:%M\").\" — \".case(row=1,\"Infra stress detected\",row=2,\"Bot mitigation triggered\",row=3,\"Queue draining begins\",row=4,\"Full service restored\") | stats list(label) AS lbl | eval \"🔴 Stress\"=mvindex(lbl,0) | eval \"🟣 Bots\"=mvindex(lbl,1) | eval \"🟡 Queue\"=mvindex(lbl,2) | eval \"🟢 Recovery\"=mvindex(lbl,3) | table \"🔴 Stress\" \"🟣 Bots\" \"🟡 Queue\" \"🟢 Recovery\""
+            },
+            "type": "ds.search"
+        },
+        "ds_service_health": {
+            "options": {
+                "query": "| makeresults count=5 | streamstats count as row | eval service=case(row=1,\"Order API\",row=2,\"Payment Gateway\",row=3,\"Inventory Service\",row=4,\"CDN / Media\",row=5,\"Auth Service\") | eval uptime_pct=case(row=1,71,row=2,65,row=3,78,row=4,94,row=5,97) | eval downtime_pct=100-uptime_pct | table service uptime_pct downtime_pct"
+            },
+            "type": "ds.search"
+        }
+    },
+    "layout": {
+        "layoutDefinitions": {
+            "layout_infra": {
+                "options": {
+                    "height": 1060,
+                    "width": 1440
+                },
+                "structure": [
+                    {
+                        "item": "viz_kpi_latency",
+                        "position": {
+                            "h": 90,
+                            "w": 270,
+                            "x": 20,
+                            "y": 10
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_kpi_error",
+                        "position": {
+                            "h": 90,
+                            "w": 270,
+                            "x": 297,
+                            "y": 10
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_kpi_failed",
+                        "position": {
+                            "h": 90,
+                            "w": 270,
+                            "x": 574,
+                            "y": 10
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_kpi_bots_peak",
+                        "position": {
+                            "h": 90,
+                            "w": 270,
+                            "x": 851,
+                            "y": 10
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_kpi_recovery",
+                        "position": {
+                            "h": 90,
+                            "w": 292,
+                            "x": 1128,
+                            "y": 10
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_latency",
+                        "position": {
+                            "h": 280,
+                            "w": 940,
+                            "x": 20,
+                            "y": 120
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_service_health",
+                        "position": {
+                            "h": 280,
+                            "w": 440,
+                            "x": 980,
+                            "y": 120
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_queue",
+                        "position": {
+                            "h": 260,
+                            "w": 630,
+                            "x": 20,
+                            "y": 420
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_failure",
+                        "position": {
+                            "h": 260,
+                            "w": 760,
+                            "x": 660,
+                            "y": 420
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_recovery_events",
+                        "position": {
+                            "h": 240,
+                            "w": 1130,
+                            "x": 290,
+                            "y": 700
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_kpi_lost",
+                        "position": {
+                            "h": 110,
+                            "w": 280,
+                            "x": 10,
+                            "y": 700
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_kpi_revenue",
+                        "position": {
+                            "h": 110,
+                            "w": 280,
+                            "x": 10,
+                            "y": 820
+                        },
+                        "type": "block"
+                    }
+                ],
+                "type": "absolute"
+            }
+        },
+        "tabs": {
+            "items": [
+                {
+                    "label": "Infra Deep Dive",
+                    "layoutId": "layout_infra"
+                }
+            ]
+        }
+    }
+}

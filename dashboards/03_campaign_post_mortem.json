@@ -1,0 +1,412 @@
+{
+    "title": "Platform Intelligence — Campaign Post-Mortem V5",
+    "description": "What each platform delivered, what the bots cost us, and what we'd do differently",
+    "visualizations": {
+        "viz_ai_insight": {
+            "options": {
+                "markdown": "**Analysis based on 22h of campaign telemetry — 3 platforms · 2.4M impressions · 18.2K orders**\n\n✅ **TikTok is your growth engine.** Delivered 51% of total revenue at the lowest cost-per-order ($20.11) with a 12.1% conversion rate — 49% above platform average. Recommend anchoring next campaign with a 60% budget allocation here.\n\n⚠️ **X / Twitter bot exposure is a margin risk.** 8.7% bot ratio vs 2.3% on TikTok means ~$11K in wasted ad spend on invalid traffic. Apply pre-bid traffic scoring or reduce X allocation until bot filters are in place.\n\n📉 **Infrastructure lag cost an estimated 3,200 orders during peak.** The 3× traffic spike caused fulfillment queue backup between 15:00–17:00. Pre-scaling to 4× capacity two hours before launch would recover an estimated **$58K in lost GMV**.\n\n🕐 **Conversion lag is real and predictable.** Orders trail impressions by 2–4h with high consistency (r²=0.91). Stagger logistics staffing to mirror this pattern — flat resourcing leaves capacity idle at launch and overwhelmed at conversion peak."
+            },
+            "title": "🤖 | ai  \"Summarize NovaDrop performance. What did we learn, and what should we do differently next launch?\"",
+            "type": "splunk.markdown"
+        },
+        "viz_funnel": {
+            "dataSources": {
+                "primary": "ds_funnel"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "legendDisplay": "bottom",
+                "seriesColorsByField": {
+                    "click_rate": "#7b8cf7",
+                    "order_rate": "#4beba8"
+                },
+                "yAxisTitleText": "Rate (%)"
+            },
+            "title": "Conversion Funnel by Platform — click rate vs. order rate (%)",
+            "type": "splunk.bar"
+        },
+        "viz_kpi_bot_culprit": {
+            "dataSources": {
+                "primary": "ds_kpi_bot_culprit"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "majorColor": "#a855f7",
+                "majorValue": "> primary | seriesByName('val') | lastPoint()",
+                "trendDisplay": "off"
+            },
+            "title": "🤖 Bot Culprit",
+            "type": "splunk.singlevalue"
+        },
+        "viz_kpi_conv": {
+            "dataSources": {
+                "primary": "ds_kpi_conv"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "majorColor": "#4beba8",
+                "majorValue": "> primary | seriesByName('val') | lastPoint()",
+                "trendDisplay": "off"
+            },
+            "title": "📈 Best Conversion Rate",
+            "type": "splunk.singlevalue"
+        },
+        "viz_kpi_roi": {
+            "dataSources": {
+                "primary": "ds_kpi_roi"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "majorColor": "#f4a941",
+                "majorValue": "> primary | seriesByName('val') | lastPoint()",
+                "trendDisplay": "off"
+            },
+            "title": "💰 Campaign ROI",
+            "type": "splunk.singlevalue"
+        },
+        "viz_kpi_score": {
+            "dataSources": {
+                "primary": "ds_kpi_score"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "majorColor": "#4beba8",
+                "majorValue": "> primary | seriesByName('val') | lastPoint()",
+                "trendDisplay": "off"
+            },
+            "title": "⭐ Campaign Score",
+            "type": "splunk.singlevalue"
+        },
+        "viz_kpi_top": {
+            "dataSources": {
+                "primary": "ds_kpi_top"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "majorColor": "#4beba8",
+                "majorValue": "> primary | seriesByName('val') | lastPoint()",
+                "trendDisplay": "off"
+            },
+            "title": "🏆 Top Performer",
+            "type": "splunk.singlevalue"
+        },
+        "viz_lost_gmv": {
+            "dataSources": {
+                "primary": "ds_predict_kpi"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "description": "Trapezoidal integral of (predicted − actual) orders during incident window",
+                "majorColor": "#f44271",
+                "majorValue": "> primary | seriesByName('val') | lastPoint()",
+                "trendDisplay": "off"
+            },
+            "title": "💸 Lost GMV — ∫ prediction gap × $36.50 / order",
+            "type": "splunk.singlevalue"
+        },
+        "viz_platform_table": {
+            "dataSources": {
+                "primary": "ds_platform_table"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "count": 10,
+                "drilldown": "none",
+                "font": "monospace",
+                "headerVisibility": "fixed",
+                "rowNumbers": false,
+                "tableFormat": {
+                    "headerBackgroundColor": "> backgroundColor | setColorChannel(tableHeaderBackgroundColorConfig)",
+                    "headerColor": "> headerBackgroundColor | maxContrast(tableRowColorMaxContrast)",
+                    "rowBackgroundColors": "> table | seriesByIndex(0) | pick(tableAltRowBackgroundColorsByBackgroundColor)",
+                    "rowColors": "> rowBackgroundColors | maxContrast(tableRowColorMaxContrast)"
+                }
+            },
+            "title": "Platform Efficiency — with order trend",
+            "type": "splunk.table"
+        },
+        "viz_predicted_actual": {
+            "dataSources": {
+                "annotations": "ds_annotations",
+                "primary": "ds_predict_chart"
+            },
+            "options": {
+                "annotationColor": "> annotations | seriesByIndex(2)",
+                "annotationLabel": "> annotations | seriesByIndex(1)",
+                "annotationX": "> annotations | seriesByIndex(0)",
+                "areaFillOpacity": 0.35,
+                "backgroundColor": "transparent",
+                "legendDisplay": "bottom",
+                "lineWidth": 2,
+                "nullValueDisplay": "zero",
+                "seriesColorsByField": {
+                    "actual": "#4beba8",
+                    "predicted": "#f4a941"
+                },
+                "yAxisTitleText": "Orders / Hour"
+            },
+            "title": "Lost Opportunity — Predicted vs. Actual Orders during incident",
+            "type": "splunk.area"
+        },
+        "viz_revenue_pie": {
+            "dataSources": {
+                "primary": "ds_revenue_pie"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "donutHoleSize": 50,
+                "legendDisplay": "bottom",
+                "seriesColorsByField": {
+                    "Instagram": "#f4a941",
+                    "TikTok": "#4beba8",
+                    "X / Twitter": "#a855f7"
+                },
+                "showDonutHole": true
+            },
+            "title": "Revenue Contribution by Platform",
+            "type": "splunk.pie"
+        },
+        "viz_total_revenue": {
+            "dataSources": {
+                "primary": "ds_total_revenue"
+            },
+            "options": {
+                "backgroundColor": "transparent",
+                "majorColor": "#4beba8",
+                "majorValue": "> primary | seriesByName('val') | lastPoint()",
+                "trendDisplay": "off"
+            },
+            "title": "💰 Total Campaign Revenue",
+            "type": "splunk.singlevalue"
+        }
+    },
+    "dataSources": {
+        "ds_annotations": {
+            "options": {
+                "query": "| makeresults count=4 | streamstats count as row | eval _time=case(row=1,_time-72000,row=2,_time-57600,row=3,_time-36000,row=4,_time-21600) | eval status=case(row=1,\"Campaign launched\",row=2,\"Viral spike detected\",row=3,\"Infra stress begins\",row=4,\"Bot mitigation triggered\") | eval color=case(row=1,\"#4beba8\",row=2,\"#f4a941\",row=3,\"#f44271\",row=4,\"#a855f7\") | table _time status color"
+            },
+            "type": "ds.search"
+        },
+        "ds_funnel": {
+            "options": {
+                "query": "| makeresults count=3 | streamstats count as row | eval platform=case(row=1,\"TikTok\",row=2,\"Instagram\",row=3,\"X / Twitter\") | eval click_rate=case(row=1,18.3,row=2,15.8,row=3,12.4) | eval order_rate=case(row=1,12.1,row=2,10.3,row=3,8.1) | table platform click_rate order_rate"
+            },
+            "type": "ds.search"
+        },
+        "ds_kpi_bot_culprit": {
+            "options": {
+                "query": "| makeresults | eval val=\"👾 X / Twitter\" | table val"
+            },
+            "type": "ds.search"
+        },
+        "ds_kpi_conv": {
+            "options": {
+                "query": "| makeresults | eval val=\"🎯 12.1%\" | table val"
+            },
+            "type": "ds.search"
+        },
+        "ds_kpi_roi": {
+            "options": {
+                "query": "| makeresults | eval val=\"💰 3.2×\" | table val"
+            },
+            "type": "ds.search"
+        },
+        "ds_kpi_score": {
+            "options": {
+                "query": "| makeresults | eval val=\"🏆 84 / 100\" | table val"
+            },
+            "type": "ds.search"
+        },
+        "ds_kpi_top": {
+            "options": {
+                "query": "| makeresults | eval val=\"🚀 TikTok\" | table val"
+            },
+            "type": "ds.search"
+        },
+        "ds_platform_table": {
+            "options": {
+                "query": "| makeresults count=3 | streamstats count as row | eval Platform=case(row=1,\"TikTok\",row=2,\"Instagram\",row=3,\"X / Twitter\") | eval Impressions=case(row=1,\"980K\",row=2,\"820K\",row=3,\"620K\") | eval Orders=case(row=1,\"9,200\",row=2,\"5,800\",row=3,\"3,200\") | eval \"Conv %\"=case(row=1,\"12.1%\",row=2,\"10.3%\",row=3,\"8.1%\") | eval \"Bot Ratio\"=case(row=1,\"2.3%\",row=2,\"3.1%\",row=3,\"8.7%\") | eval \"Order Trend\"=case(row=1,\"▁▁▂▃▅▇█▇▆▅▄▃\",row=2,\"▁▁▂▃▄▆█▆▄▃▂▂\",row=3,\"▁▁▁▂▃▅█▄▁▁▁▁\") | table Platform Impressions Orders \"Conv %\" \"Bot Ratio\" \"Order Trend\""
+            },
+            "type": "ds.search"
+        },
+        "ds_predict_base": {
+            "name": "NovaDrop Lost Opportunity — | predict with holdback=8",
+            "options": {
+                "query": "| makeresults count=20 | streamstats count as h | eval _time=_time-((21-h)*3600) | eval actual=case(h<=12, h*100,h<=13, 800,h<=14, 300,h<=15, 80,h<=16, 150,h<=17, 550,h<=18, 950,1=1,   950+(h-18)*80) | predict actual as predicted future_timespan=5 holdback=8",
+                "queryParameters": {
+                    "earliest": "-24h",
+                    "latest": "now"
+                }
+            },
+            "type": "ds.search"
+        },
+        "ds_predict_chart": {
+            "options": {
+                "extend": "ds_predict_base",
+                "query": "| fields _time actual predicted upper95 lower95"
+            },
+            "type": "ds.chain"
+        },
+        "ds_predict_kpi": {
+            "name": "Lost GMV integral — trapezoidal approx",
+            "options": {
+                "extend": "ds_predict_base",
+                "query": "| eval gap = if(predicted > actual, predicted - actual, 0) | eventstats sum(gap) as total, first(gap) as g_first, last(gap) as g_last | eval lost_orders = round(total - (g_first + g_last) / 2, 0) | dedup lost_orders | eval val = \"💸 $\" + tostring(round(lost_orders * 31.00, 0), \"commas\")| table val"
+            },
+            "type": "ds.chain"
+        },
+        "ds_revenue_pie": {
+            "options": {
+                "query": "| makeresults count=3 | streamstats count as row | eval platform=case(row=1,\"TikTok\",row=2,\"Instagram\",row=3,\"X / Twitter\") | eval revenue=case(row=1,184000,row=2,116000,row=3,64000) | table platform revenue"
+            },
+            "type": "ds.search"
+        },
+        "ds_total_revenue": {
+            "options": {
+                "query": "| makeresults | eval val=\"💰 $364,000\" | table val"
+            },
+            "type": "ds.search"
+        }
+    },
+    "layout": {
+        "layoutDefinitions": {
+            "layout_intel": {
+                "options": {
+                    "height": 905,
+                    "width": 1440
+                },
+                "structure": [
+                    {
+                        "item": "viz_kpi_top",
+                        "position": {
+                            "h": 90,
+                            "w": 220,
+                            "x": 20,
+                            "y": 10
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_kpi_bot_culprit",
+                        "position": {
+                            "h": 90,
+                            "w": 220,
+                            "x": 248,
+                            "y": 10
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_kpi_conv",
+                        "position": {
+                            "h": 90,
+                            "w": 220,
+                            "x": 476,
+                            "y": 10
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_kpi_roi",
+                        "position": {
+                            "h": 90,
+                            "w": 220,
+                            "x": 704,
+                            "y": 10
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_kpi_score",
+                        "position": {
+                            "h": 90,
+                            "w": 220,
+                            "x": 932,
+                            "y": 10
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_total_revenue",
+                        "position": {
+                            "h": 90,
+                            "w": 260,
+                            "x": 1160,
+                            "y": 10
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_revenue_pie",
+                        "position": {
+                            "h": 250,
+                            "w": 400,
+                            "x": 20,
+                            "y": 120
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_ai_insight",
+                        "position": {
+                            "h": 250,
+                            "w": 980,
+                            "x": 440,
+                            "y": 120
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_predicted_actual",
+                        "position": {
+                            "h": 195,
+                            "w": 1050,
+                            "x": 20,
+                            "y": 390
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_platform_table",
+                        "position": {
+                            "h": 280,
+                            "w": 940,
+                            "x": 20,
+                            "y": 605
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_funnel",
+                        "position": {
+                            "h": 280,
+                            "w": 460,
+                            "x": 960,
+                            "y": 605
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_lost_gmv",
+                        "position": {
+                            "h": 195,
+                            "w": 330,
+                            "x": 1090,
+                            "y": 390
+                        },
+                        "type": "block"
+                    }
+                ],
+                "type": "absolute"
+            }
+        },
+        "tabs": {
+            "items": [
+                {
+                    "label": "Platform Intelligence",
+                    "layoutId": "layout_intel"
+                }
+            ]
+        }
+    }
+}
