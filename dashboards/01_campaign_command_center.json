@@ -1,5 +1,5 @@
 {
-    "title": "Campaign Command Center V17",
+    "title": "Campaign Command Center",
     "description": "Real-time visibility from social impression to order outcome — viral launch edition",
     "inputs": {
         "input_bots_toggle": {
@@ -207,6 +207,15 @@
             "dataSources": {
                 "primary": "ds_events_table"
             },
+            "eventHandlers": [
+                {
+                    "options": {
+                        "app": "novadrop",
+                        "dashboard": "infra_stress_v5"
+                    },
+                    "type": "drilldown.linkToDashboard"
+                }
+            ],
             "options": {
                 "backgroundColor": "> themes.defaultBackgroundColor",
                 "count": 1,

@@ -1,13 +1,24 @@
 {
-    "title": "Platform Intelligence — Campaign Post-Mortem V5",
+    "title": "Platform Intelligence — Campaign Post-Mortem V6",
     "description": "What each platform delivered, what the bots cost us, and what we'd do differently",
+    "defaults": {
+        "dataSources": {}
+    },
     "visualizations": {
-        "viz_ai_insight": {
-            "options": {
-                "markdown": "**Analysis based on 22h of campaign telemetry — 3 platforms · 2.4M impressions · 18.2K orders**\n\n✅ **TikTok is your growth engine.** Delivered 51% of total revenue at the lowest cost-per-order ($20.11) with a 12.1% conversion rate — 49% above platform average. Recommend anchoring next campaign with a 60% budget allocation here.\n\n⚠️ **X / Twitter bot exposure is a margin risk.** 8.7% bot ratio vs 2.3% on TikTok means ~$11K in wasted ad spend on invalid traffic. Apply pre-bid traffic scoring or reduce X allocation until bot filters are in place.\n\n📉 **Infrastructure lag cost an estimated 3,200 orders during peak.** The 3× traffic spike caused fulfillment queue backup between 15:00–17:00. Pre-scaling to 4× capacity two hours before launch would recover an estimated **$58K in lost GMV**.\n\n🕐 **Conversion lag is real and predictable.** Orders trail impressions by 2–4h with high consistency (r²=0.91). Stagger logistics staffing to mirror this pattern — flat resourcing leaves capacity idle at launch and overwhelmed at conversion peak."
+        "viz_3gnUORXr": {
+            "dataSources": {
+                "primary": "ds_dnkISTJY"
             },
-            "title": "🤖 | ai  \"Summarize NovaDrop performance. What did we learn, and what should we do differently next launch?\"",
-            "type": "splunk.markdown"
+            "options": {
+                "backgroundColor": "> themes.defaultBackgroundColor",
+                "font": "monospace",
+                "fontSize": "large",
+                "headerVisibility": "none",
+                "tableFormat": {
+                    "rowBackgroundColors": "> table | seriesByIndex(0) | pick(tableAltRowBackgroundColorsByTheme)"
+                }
+            },
+            "type": "splunk.table"
         },
         "viz_funnel": {
             "dataSources": {
@@ -155,6 +166,7 @@
             "options": {
                 "backgroundColor": "transparent",
                 "donutHoleSize": 50,
+                "labelDisplay": "valuesAndPercentage",
                 "legendDisplay": "bottom",
                 "seriesColorsByField": {
                     "Instagram": "#f4a941",
@@ -187,19 +199,33 @@
             },
             "type": "ds.search"
         },
+        "ds_dnkISTJY": {
+            "name": "ai_generated_summary",
+            "options": {
+                "query": "index=main sourcetype=campaign\r\n| stats list(campaign_text) as all_platforms\r\n| eval summary = mvjoin(all_platforms, \"\\n\")\r\n| fields summary\r\n| ai prompt=\"Campaign data: {summary} --- Campaign data: {summary} --- Write exactly 4 bullet points. Start each with an emoji: 💰 for total revenue, ✅ for platform leader, ⚠️ for biggest risk, 🎯 for actionable takeaway. Plain text only, no markdown, no asterisks. Numbers only from the data. name the outpufield as AI Generated Campaign Summary\" connection=\"ai_command_test\"\r\n| table ai_result_1",
+                "queryParameters": {
+                    "earliest": "0",
+                    "latest": ""
+                }
+            },
+            "type": "ds.search"
+        },
         "ds_funnel": {
+            "name": "conv_rate_by_platform",
             "options": {
                 "query": "| makeresults count=3 | streamstats count as row | eval platform=case(row=1,\"TikTok\",row=2,\"Instagram\",row=3,\"X / Twitter\") | eval click_rate=case(row=1,18.3,row=2,15.8,row=3,12.4) | eval order_rate=case(row=1,12.1,row=2,10.3,row=3,8.1) | table platform click_rate order_rate"
             },
             "type": "ds.search"
         },
         "ds_kpi_bot_culprit": {
+            "name": "bot_culprit",
             "options": {
                 "query": "| makeresults | eval val=\"👾 X / Twitter\" | table val"
             },
             "type": "ds.search"
         },
         "ds_kpi_conv": {
+            "name": "best_conv_rate",
             "options": {
                 "query": "| makeresults | eval val=\"🎯 12.1%\" | table val"
             },
@@ -212,18 +238,21 @@
             "type": "ds.search"
         },
         "ds_kpi_score": {
+            "name": "campaign_score",
             "options": {
                 "query": "| makeresults | eval val=\"🏆 84 / 100\" | table val"
             },
             "type": "ds.search"
         },
         "ds_kpi_top": {
+            "name": "top_performer",
             "options": {
                 "query": "| makeresults | eval val=\"🚀 TikTok\" | table val"
             },
             "type": "ds.search"
         },
         "ds_platform_table": {
+            "name": "platform_efficiency",
             "options": {
                 "query": "| makeresults count=3 | streamstats count as row | eval Platform=case(row=1,\"TikTok\",row=2,\"Instagram\",row=3,\"X / Twitter\") | eval Impressions=case(row=1,\"980K\",row=2,\"820K\",row=3,\"620K\") | eval Orders=case(row=1,\"9,200\",row=2,\"5,800\",row=3,\"3,200\") | eval \"Conv %\"=case(row=1,\"12.1%\",row=2,\"10.3%\",row=3,\"8.1%\") | eval \"Bot Ratio\"=case(row=1,\"2.3%\",row=2,\"3.1%\",row=3,\"8.7%\") | eval \"Order Trend\"=case(row=1,\"▁▁▂▃▅▇█▇▆▅▄▃\",row=2,\"▁▁▂▃▄▆█▆▄▃▂▂\",row=3,\"▁▁▁▂▃▅█▄▁▁▁▁\") | table Platform Impressions Orders \"Conv %\" \"Bot Ratio\" \"Order Trend\""
             },
@@ -241,6 +270,7 @@
             "type": "ds.search"
         },
         "ds_predict_chart": {
+            "name": "lost_opportunity_chart",
             "options": {
                 "extend": "ds_predict_base",
                 "query": "| fields _time actual predicted upper95 lower95"
@@ -256,12 +286,14 @@
             "type": "ds.chain"
         },
         "ds_revenue_pie": {
+            "name": "roi_by_platform",
             "options": {
                 "query": "| makeresults count=3 | streamstats count as row | eval platform=case(row=1,\"TikTok\",row=2,\"Instagram\",row=3,\"X / Twitter\") | eval revenue=case(row=1,184000,row=2,116000,row=3,64000) | table platform revenue"
             },
             "type": "ds.search"
         },
         "ds_total_revenue": {
+            "name": "total_roi",
             "options": {
                 "query": "| makeresults | eval val=\"💰 $364,000\" | table val"
             },
@@ -347,16 +379,6 @@
                         "type": "block"
                     },
                     {
-                        "item": "viz_ai_insight",
-                        "position": {
-                            "h": 250,
-                            "w": 980,
-                            "x": 440,
-                            "y": 120
-                        },
-                        "type": "block"
-                    },
-                    {
                         "item": "viz_predicted_actual",
                         "position": {
                             "h": 195,
@@ -393,6 +415,16 @@
                             "w": 330,
                             "x": 1090,
                             "y": 390
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_3gnUORXr",
+                        "position": {
+                            "h": 280,
+                            "w": 960,
+                            "x": 450,
+                            "y": 100
                         },
                         "type": "block"
                     }
